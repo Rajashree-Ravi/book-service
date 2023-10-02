@@ -6,15 +6,17 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.7.16</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.library</groupId>
 	<artifactId>book-service</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>book-service</name>
 	<description>Service to handle API related to book domain</description>
 	<properties>
 		<java.version>11</java.version>
+		<springfox.version>3.0.0</springfox.version>
+		<common.library.version>1.0.0</common.library.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -25,7 +27,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
@@ -38,11 +39,39 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-boot-starter</artifactId>
+			<version>${springfox.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-bean-validators</artifactId>
+			<version>${springfox.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>${springfox.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-xml</artifactId>
+		</dependency>
+		<!-- Common module for library services -->
+		<dependency>
+			<groupId>com.library</groupId>
+			<artifactId>common</artifactId>
+			<version>${common.library.version}</version>
+		</dependency>
 	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>
@@ -59,5 +88,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
