@@ -121,4 +121,34 @@ public class BookController {
 
 		return new ResponseEntity<>(books, HttpStatus.OK);
 	}
+	
+	@PutMapping("/author/{id}")
+	@ApiOperation(value = "Update books by author", response = ResponseEntity.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully updated the books"),
+			@ApiResponse(code = 404, message = "Books with specified author id not found"),
+			@ApiResponse(code = 500, message = "Application failed to process the request") })
+	public ResponseEntity<String> removeAuthor(@PathVariable("id") long id) {
+		List<Book> updatedBooks = bookService.removeAuthorId(id);
+
+		if (updatedBooks.isEmpty())
+			throw new LibraryException("books-not-found", String.format("Books with the author id=%d not found", id),
+					HttpStatus.NOT_FOUND);
+
+		return new ResponseEntity<>("Books updated successfully", HttpStatus.OK);
+	}
+	
+	@PutMapping("/borrower/{id}")
+	@ApiOperation(value = "Update books by borrower", response = ResponseEntity.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully updated the books"),
+			@ApiResponse(code = 404, message = "Books with specified borrower id not found"),
+			@ApiResponse(code = 500, message = "Application failed to process the request") })
+	public ResponseEntity<String> removeBorrower(@PathVariable("id") long id) {
+		List<Book> updatedBooks = bookService.removeBorrowerId(id);
+
+		if (updatedBooks.isEmpty())
+			throw new LibraryException("books-not-found", String.format("Books with the borrower id=%d not found", id),
+					HttpStatus.NOT_FOUND);
+
+		return new ResponseEntity<>("Books updated successfully", HttpStatus.OK);
+	}
 }

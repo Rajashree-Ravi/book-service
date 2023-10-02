@@ -19,4 +19,8 @@ public interface BookService {
 	List<Book> findByAuthor(long authorId);
 
 	List<Book> findByBorrower(long borrowerId);
+	
+	List<Book> removeAuthorId(long authorId);
+	
+	List<Book> removeBorrowerId(long borrowerId);
 }

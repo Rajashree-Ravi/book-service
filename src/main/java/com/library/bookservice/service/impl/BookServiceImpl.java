@@ -65,4 +65,26 @@ public class BookServiceImpl implements BookService {
 		return bookRepository.findByBorrowerId(borrowerId);
 	}
 
+	@Override
+	public List<Book> removeAuthorId(long authorId) {
+		List<Book> updatedBooks = new ArrayList<>();
+		bookRepository.findByAuthorId(authorId).forEach(book -> {
+			book.setAuthorId(null);
+			updatedBooks.add(bookRepository.save(book));
+		});
+
+		return updatedBooks;
+	}
+
+	@Override
+	public List<Book> removeBorrowerId(long borrowerId) {
+		List<Book> updatedBooks = new ArrayList<>();
+		bookRepository.findByBorrowerId(borrowerId).forEach(book -> {
+			book.setBorrowerId(null);
+			updatedBooks.add(bookRepository.save(book));
+		});
+
+		return updatedBooks;
+	}
+
 }
