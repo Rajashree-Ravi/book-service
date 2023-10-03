@@ -4,18 +4,36 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.library.bookservice.entity.Book;
 import com.library.bookservice.repository.BookRepository;
 import com.library.bookservice.service.BookService;
+import com.library.common.exception.LibraryException;
 
 @Service
 public class BookServiceImpl implements BookService {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(BookService.class);
 
 	@Autowired
 	private BookRepository bookRepository;
+	
+	private final RestTemplate restTemplate;
+	private static final String AUTHOR_SERVICE_URL = "http://localhost:8081/api/authors";
+	private static final String BORROWER_SERVICE_URL = "http://localhost:8082/api/borrowers";
+
+	public BookServiceImpl(RestTemplateBuilder restTemplateBuilder) {
+		this.restTemplate = restTemplateBuilder.build();
+	}
 
 	@Override
 	public List<Book> getAllBooks(String title) {
@@ -37,17 +55,50 @@ public class BookServiceImpl implements BookService {
 
 	@Override
 	public Book createBook(Book book) {
-		return bookRepository.save(book);
+		boolean authorExists = true;
+		boolean borrowerExists = true;
+		
+		if (book.getAuthorId() != null && book.getAuthorId() != 0)
+			authorExists = checkIfAuthorExists(book.getAuthorId());
+		
+		if (book.getBorrowerId() != null && book.getBorrowerId() != 0)
+			borrowerExists = checkIfBorrowerExists(book.getBorrowerId());
+		
+		if (authorExists && borrowerExists)
+			return bookRepository.save(book);
+		else if (!authorExists)
+			throw new LibraryException("author-not-found", String.format("Author with id=%d not found", book.getAuthorId()) , HttpStatus.NOT_FOUND);
+		else if (!borrowerExists)
+			throw new LibraryException("borrower-not-found", String.format("Borrower with id=%d not found", book.getBorrowerId()) , HttpStatus.NOT_FOUND);
+		
+		return null;
 	}
 
 	@Override
 	public Book updateBook(long id, Book book) {
+		
+		boolean authorExists = true;
+		boolean borrowerExists = true;
+		
+		if (book.getAuthorId() != null && book.getAuthorId() != 0)
+			authorExists = checkIfAuthorExists(book.getAuthorId());
+		
+		if (book.getBorrowerId() != null && book.getBorrowerId() != 0)
+			borrowerExists = checkIfBorrowerExists(book.getBorrowerId());
+		
+		if (authorExists && borrowerExists) {
+			Optional<Book> updatedBook = bookRepository.findById(id).map(existingBook -> {
+				return bookRepository.save(existingBook.updateWith(book));
+			});
 
-		Optional<Book> updatedBook = bookRepository.findById(id).map(existingBook -> {
-			return bookRepository.save(existingBook.updateWith(book));
-		});
-
-		return (updatedBook.isPresent() ? updatedBook.get() : null);
+			return (updatedBook.isPresent() ? updatedBook.get() : null);
+		}
+		else if (!authorExists)
+			throw new LibraryException("author-not-found", String.format("Author with id=%d not found", book.getAuthorId()) , HttpStatus.NOT_FOUND);
+		else if (!borrowerExists)
+			throw new LibraryException("borrower-not-found", String.format("Borrower with id=%d not found", book.getBorrowerId()) , HttpStatus.NOT_FOUND);
+		
+		return null;
 	}
 
 	@Override
@@ -85,6 +136,22 @@ public class BookServiceImpl implements BookService {
 		});
 
 		return updatedBooks;
+	}
+	
+	private boolean checkIfAuthorExists(long authorId) {
+		ResponseEntity<Object> result = restTemplate.exchange(AUTHOR_SERVICE_URL + "/" + authorId, HttpMethod.GET, null, Object.class);
+		LOGGER.info("Response Status: " + result.getStatusCode());
+		LOGGER.info("Response Body: " + result.getBody());
+		
+		return (result.getStatusCode() == HttpStatus.OK) ? true : false;
+	}
+	
+	private boolean checkIfBorrowerExists(long borrowerId) {
+		ResponseEntity<Object> result = restTemplate.exchange(BORROWER_SERVICE_URL + "/" + borrowerId, HttpMethod.GET, null, Object.class);
+		LOGGER.info("Response Status: " + result.getStatusCode());
+		LOGGER.info("Response Body: " + result.getBody());
+
+		return (result.getStatusCode() == HttpStatus.OK) ? true : false;
 	}
 
 }
